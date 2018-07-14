@@ -1,0 +1,129 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.miketa.locationtracker.RouteDetailsFragment">
+
+
+    <TextView
+        android:id="@+id/distance_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="41dp"
+        android:layout_marginTop="53dp"
+        android:text="@string/distance" />
+
+    <TextView
+        android:id="@+id/duration_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/distance_textview"
+        android:layout_below="@+id/distance_textview"
+        android:layout_marginTop="50dp"
+        android:text="@string/duration" />
+
+    <TextView
+        android:id="@+id/maxSpeed_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/duration_textview"
+        android:layout_below="@+id/duration_textview"
+        android:layout_marginTop="50dp"
+        android:text="@string/max_speed" />
+
+    <TextView
+        android:id="@+id/avgSpeed_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/maxSpeed_textview"
+        android:layout_below="@+id/maxSpeed_textview"
+        android:layout_marginTop="51dp"
+        android:text="@string/avg_speed" />
+
+    <TextView
+        android:id="@+id/minAltitude_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/avgSpeed_textview"
+        android:layout_below="@+id/avgSpeed_textview"
+        android:layout_marginTop="40dp"
+        android:text="@string/minAltitude" />
+
+    <TextView
+        android:id="@+id/maxAltitude_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/minAltitude_textview"
+        android:layout_below="@+id/minAltitude_textview"
+        android:layout_marginTop="44dp"
+        android:text="@string/max_altitude" />
+
+    <TextView
+        android:id="@+id/avgAltitude_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/maxAltitude_textview"
+        android:layout_below="@+id/maxAltitude_textview"
+        android:layout_marginTop="43dp"
+        android:text="@string/avgAltitude" />
+
+    <TextView
+        android:id="@+id/distanceValue_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/distance_textview"
+        android:layout_marginEnd="64dp"
+        android:text="@string/none" />
+
+    <TextView
+        android:id="@+id/durationValue_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/distanceValue_textview"
+        android:layout_alignTop="@+id/duration_textview"
+        android:text="@string/none" />
+
+    <TextView
+        android:id="@+id/maxSpeedValue_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/durationValue_textview"
+        android:layout_alignTop="@+id/maxSpeed_textview"
+        android:text="@string/none" />
+
+    <TextView
+        android:id="@+id/avgSpeedValue_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/maxSpeedValue_textview"
+        android:layout_alignTop="@+id/avgSpeed_textview"
+        android:text="@string/none" />
+
+    <TextView
+        android:id="@+id/minAltitudeValue_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/maxAltitude_textview"
+        android:layout_alignStart="@+id/avgSpeedValue_textview"
+        android:text="@string/none" />
+
+    <TextView
+        android:id="@+id/maxAltitudeValue_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/minAltitudeValue_textview"
+        android:layout_alignTop="@+id/maxAltitude_textview"
+        android:text="@string/none" />
+
+    <TextView
+        android:id="@+id/avgAltitudeValue_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/maxAltitudeValue_textview"
+        android:layout_alignTop="@+id/avgAltitude_textview"
+        android:text="@string/none" />
+
+</RelativeLayout>
