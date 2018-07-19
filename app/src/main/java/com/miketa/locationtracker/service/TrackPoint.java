@@ -1,12 +1,22 @@
 package com.miketa.locationtracker.service;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.time.Instant;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+
 import im.delight.android.location.SimpleLocation;
 
+import static android.content.ContentValues.TAG;
+
 class TrackPoint {
-    private float timestamp;
+
+    private long timestamp;
     private float longitude;
     private float latitude;
     private float altitude;
@@ -16,8 +26,11 @@ class TrackPoint {
         this.longitude = (float) location.getLongitude();
         this.latitude = (float) location.getLatitude();
         this.altitude = (float) location.getAltitude();
-        this.speed = location.getSpeed();
-        this.timestamp = System.currentTimeMillis();
+        this.speed = location.getSpeed() * 3.6f; //m/s to km/h
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+        Calendar cal = Calendar.getInstance(TimeZone.getDefault());
+        Date date = cal.getTime();
+        this.timestamp = date.getTime();
     }
 
     JSONObject toJsonObject(){

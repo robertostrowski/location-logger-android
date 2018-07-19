@@ -30,13 +30,13 @@ public class TrackPointAddingTask extends AsyncTask<Void, Void, Void>
         this.points = points;
         this.newTrackId = newTrackId;
         this.uuid = uuid;
-        Log.d(TAG, "TrackPointAddingTask: " + uuid);
         this.context = context;
     }
 
     @Override
     protected Void doInBackground(Void... voids) {
         try {
+            Log.d(TAG, "doInBackground: hello");
             sendPoints();
         } catch (IOException | JSONException e) {
             e.printStackTrace();
@@ -49,6 +49,7 @@ public class TrackPointAddingTask extends AsyncTask<Void, Void, Void>
         String token = sharedPref.getString(context.getString(R.string.token_value), null);
 
         String URI = "https://api-locationtracker.herokuapp.com/api/v1/track/" + newTrackId + "/points";
+//        String URI = "157.158.201.204:9090";
 
         MediaType mediaType = MediaType.parse("application/json");
         RequestBody body = RequestBody.create(mediaType, points);
@@ -65,5 +66,7 @@ public class TrackPointAddingTask extends AsyncTask<Void, Void, Void>
                 .build();
         Response response = client.newCall(request).execute();
         response.body().string();
+        Log.d("post on /track/" + newTrackId + "/points", points);
+
     }
 }

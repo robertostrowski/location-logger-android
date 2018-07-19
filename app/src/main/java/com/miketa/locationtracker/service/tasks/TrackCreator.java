@@ -57,7 +57,7 @@ public class TrackCreator extends AsyncTask<Void, Void, Integer> {
 
     private void getDeviceUuid() throws IOException, JSONException {
         String deviceName = "Nexus 5X";
-        //String deviceName = android.os.Build.MODEL;
+        String deviceNamew = android.os.Build.MODEL;
         System.out.println("device name: " + android.os.Build.MODEL);
 
         SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.preference_file_key), Context.MODE_PRIVATE);

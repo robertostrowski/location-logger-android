@@ -2,7 +2,6 @@ package com.miketa.locationtracker;
 
 
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
@@ -30,11 +29,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.miketa.locationtracker.service.JSONArrayReceiver;
 import com.miketa.locationtracker.service.TrackService;
-import com.miketa.locationtracker.service.TrackCollectorManager;
-import com.miketa.locationtracker.service.tasks.TrackCreator;
-import com.miketa.locationtracker.service.tasks.TrackPointAddingTask;
-import com.miketa.locationtracker.service.tasks.TrackPointBroadcastReceiver;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,29 +42,20 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, RouteFragment.OnListFragmentInteractionListener, DeviceFragment.OnListFragmentInteractionListener,
         AddDeviceFragment.OnFragmentInteractionListener, RouteDetailsFragment.OnFragmentInteractionListener, ChangeRouteNameDialogFragment.ChangeRouteNameDialogListener {
 
-
     private UserTask mUserTask = null;
     private MapFragment myMap;
     private boolean serviceRunning = false;
-    private BroadcastReceiver broadcast = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String points = intent.getStringExtra("JSONArray");
-            String uuid = intent.getStringExtra("uuid");
-            Integer newTrackId = intent.getIntExtra("newTrackId", -1);
-            new TrackPointAddingTask(points, newTrackId, uuid, context).execute();
-        }
-    };
-    private IntentFilter filter = new IntentFilter("Locations JSON Array");
+    private BroadcastReceiver broadcastReceiver = new JSONArrayReceiver();
+    private IntentFilter intentFilter = new IntentFilter("Locations JSON Array");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,13 +64,13 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         // Create MapFragment and add it to main panel
@@ -91,6 +78,18 @@ public class MainActivity extends AppCompatActivity
         //Starting fragment is routes fragment
         mUserTask = new UserTask(1, 0, this, 0, null, null);
         mUserTask.execute((Void) null);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(broadcastReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(broadcastReceiver, intentFilter);
     }
 
     void handleFloatingButtonClick(){
@@ -105,7 +104,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -146,7 +145,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_add_device) {
-            AppCompatActivity activity = (AppCompatActivity) this;
+            AppCompatActivity activity = this;
             FragmentManager fragmentManager = activity.getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             AddDeviceFragment fragment = AddDeviceFragment.newInstance(this);
@@ -161,7 +160,7 @@ public class MainActivity extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -253,9 +252,24 @@ public class MainActivity extends AppCompatActivity
         final Handler handler = new Handler() {
             public void handleMessage(Message msg) {
                 try {
+                    /*
                     myMap.DeleteAllMarkers();
                     AddMarkToMap((String) msg.obj);
                     addMapFragment();
+                    */
+                    String str = "google.navigation:q=";
+                    JSONObject json = new JSONObject((String) msg.obj);
+                    Double d = json.getDouble("lat");
+                    String str2 = d.toString();
+                    d = json.getDouble("lng");
+                    str2 += "," + d.toString();
+                    String str3 = str + str2;
+                    Uri gmmIntentUri = Uri.parse(str3);
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    if (mapIntent.resolveActivity(getApplicationContext().getPackageManager()) != null) {
+                        startActivity(mapIntent);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -323,18 +337,6 @@ public class MainActivity extends AppCompatActivity
         {
             Log.e("Exception: %s", e.getMessage());
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(broadcast, filter);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(broadcast);
     }
 }
 

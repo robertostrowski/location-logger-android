@@ -1,6 +1,7 @@
 package com.miketa.locationtracker.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.IBinder;
@@ -9,10 +10,15 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.miketa.locationtracker.service.tasks.TrackCreator;
+import com.miketa.locationtracker.service.tasks.TrackPointAddingTask;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -22,32 +28,39 @@ import static android.content.ContentValues.TAG;
 
 public class TrackService extends Service {
 
-    // how often points are collected in milliseconds
-    private int getLocationInterval = 5000;
-
     // high-level location library class for getting locations
     private SimpleLocation location;
 
     //container for gathered locations
     private List<TrackPoint> trackPoints = new ArrayList<>();
 
-    private Integer trackID;
     private String uuid;
     private Integer newTrackId;
 
-    // task to work on asynchronously
-    Runnable gpsLocationCollector;
-
     // thread for a task to run asynchronously
     Thread thread;
+    private Context context;
+
+    // task to work on asynchronously
+    Runnable gpsLocationCollector = new Runnable() {
+        @Override
+        public void run() {
+            while(!thread.isInterrupted()){
+                long time = System.currentTimeMillis();
+
+                trackPoints.add(new TrackPoint(location));
+                Log.d(TAG, "run: " + trackPoints.get(trackPoints.size() - 1).toJsonObject());
+
+                while(time + 5000 > System.currentTimeMillis());
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
-        gpsLocationCollector = locationCollectorRunnable();
-        location = new SimpleLocation(this);
-        if (!location.hasLocationEnabled()) {
-            SimpleLocation.openSettings(this);
-        }
+        context = this;
+        location = new SimpleLocation(this, true, false, 2500);
+        location.beginUpdates();
         TrackCreator trackCreator = new TrackCreator(this);
         try {
             trackCreator.execute().get();
@@ -56,11 +69,11 @@ public class TrackService extends Service {
         }
         newTrackId = trackCreator.getNewTrackId();
         uuid = trackCreator.getUuid();
-        Log.d(TAG, "onCreate: " + uuid);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Toast.makeText(this, "Track started", Toast.LENGTH_LONG).show();
         thread = performOnBackgroundThread(gpsLocationCollector);
         return Service.START_NOT_STICKY;
     }
@@ -68,44 +81,28 @@ public class TrackService extends Service {
     @Override
     public void onDestroy() {
         Toast.makeText(this, "Track stopped", Toast.LENGTH_LONG).show();
+        sendTrackPointsToActivity();
         thread.interrupt();
     }
 
-    Runnable locationCollectorRunnable() {
-        return new Runnable() {
-            @Override
-            public void run() {
-                while (!Thread.currentThread().isInterrupted()) {
-                    trackPoints.add(new TrackPoint(location));
-                    sendTrackPointsToActivity();
-                    //wait some time
-                    long tmp = System.currentTimeMillis();
-                    while (tmp + 5000 > System.currentTimeMillis()) ;
-                }
-            }
-        };
-    }
-
-    private void sendTrackPointsToActivity(){
+    private void sendTrackPointsToActivity() {
+//        Log.d(TAG, "sendTrackPointsToActivity: uuid: " + uuid + " newTrackId: " + newTrackId + " points: + " + getTrackPointsAsJson())
+        Collections.reverse(trackPoints);
         if (uuid == null || newTrackId < 0)
             return;
         Intent intent = new Intent("Locations JSON Array");
         intent.putExtra("JSONArray", getTrackPointsAsJson());
         intent.putExtra("newTrackId", newTrackId);
         intent.putExtra("uuid", uuid);
-        trackPoints.clear();
         sendBroadcast(intent);
+        trackPoints.clear();
     }
 
     public Thread performOnBackgroundThread(final Runnable runnable) {
         final Thread t = new Thread() {
             @Override
             public void run() {
-                try {
-                    runnable.run();
-                } finally {
-                    sendTrackPointsToActivity();
-                }
+                runnable.run();
             }
         };
         t.start();
@@ -120,8 +117,15 @@ public class TrackService extends Service {
 
     public String getTrackPointsAsJson() {
         JSONArray jjarr = new JSONArray();
-        for(TrackPoint tp : trackPoints) {
-            jjarr.put(tp.toJsonObject());
+        for (TrackPoint tp : trackPoints) {
+            try {
+                JSONObject tpJSON = tp.toJsonObject();
+                if(!tpJSON.get("lng").toString().equals("0")){
+                    jjarr.put(tpJSON);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
         return jjarr.toString();
     }
